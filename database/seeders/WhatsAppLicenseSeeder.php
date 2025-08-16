@@ -11,8 +11,6 @@ class WhatsAppLicenseSeeder extends Seeder
 {
     public function run()
     {
-
-        return t
         // Criar algumas licenças de exemplo
         $licenses = [
             [
@@ -169,12 +167,7 @@ class WhatsAppLicenseSeeder extends Seeder
                 'action' => 'deactivated',
                 'ip_address' => '192.168.1.1',
                 'user_agent' => 'Admin Panel',
-                                'created_at' => Carbon::now()->subDays(rand(1, 3)),
-            ]);
-        }
-        */
-    }
-}
+                'created_at' => Carbon::now()->subDays(rand(1, 3)),
             ]);
         }
     }
