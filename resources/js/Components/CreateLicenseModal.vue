@@ -193,7 +193,8 @@ const createLicense = async () => {
     error.value = '';
 
     try {
-        const response = await axios.post('/api/whatsapp/licenses/generate', form);
+        // Usar axios com configuração CSRF automática para rotas web
+        const response = await axios.post('/admin/licenses/generate', form);
         
         if (response.data.success) {
             emit('created', response.data);
