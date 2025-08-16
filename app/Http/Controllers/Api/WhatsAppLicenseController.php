@@ -268,42 +268,102 @@ class WhatsAppLicenseController extends Controller
     /**
      * Desativar uma licença
      */
-    public function deactivateLicense($licenseId)
+    public function deactivateLicense($license)
     {
         try {
-            $license = WhatsAppLicense::find($licenseId);
+            $licenseModel = WhatsAppLicense::find($license);
 
-            if (!$license) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Licença não encontrada'
-                ], 404);
+            if (!$licenseModel) {
+                return redirect()->back()->with('error', 'Licença não encontrada');
             }
 
-            $license->update([
+            $licenseModel->update([
                 'status' => 'inactive',
                 'device_id' => null
             ]);
 
             // Registra log de desativação
             WhatsAppLicenseLog::create([
-                'license_id' => $licenseId,
+                'license_id' => $license,
                 'action' => 'deactivated',
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->header('User-Agent'),
                 'created_at' => now()
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Licença desativada com sucesso'
-            ]);
+            return redirect()->back()->with('success', 'Licença desativada com sucesso');
 
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao desativar licença'
-            ], 500);
+            return redirect()->back()->with('error', 'Erro ao desativar licença: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Deletar uma licença permanentemente
+     */
+    public function deleteLicense($license)
+    {
+        try {
+            $licenseModel = WhatsAppLicense::find($license);
+
+            if (!$licenseModel) {
+                return redirect()->back()->with('error', 'Licença não encontrada');
+            }
+
+            // Registra log de deleção antes de apagar
+            WhatsAppLicenseLog::create([
+                'license_id' => $license,
+                'action' => 'deleted',
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->header('User-Agent'),
+                'created_at' => now()
+            ]);
+
+            // Remove a licença e todos os logs relacionados
+            $licenseModel->logs()->delete(); // Remove todos os logs da licença
+            $licenseModel->delete(); // Remove a licença
+
+            return redirect()->back()->with('success', 'Licença deletada permanentemente com sucesso');
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Erro ao deletar licença: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Ativar uma licença
+     */
+    public function activateLicense($license)
+    {
+        try {
+            $licenseModel = WhatsAppLicense::find($license);
+
+            if (!$licenseModel) {
+                return redirect()->back()->with('error', 'Licença não encontrada');
+            }
+
+            // Verifica se a licença ainda não expirou
+            if ($licenseModel->expires_at && $licenseModel->is_expired) {
+                return redirect()->back()->with('error', 'Não é possível ativar uma licença expirada. Renove-a primeiro.');
+            }
+
+            $licenseModel->update([
+                'status' => 'active'
+            ]);
+
+            // Registra log de ativação
+            WhatsAppLicenseLog::create([
+                'license_id' => $license,
+                'action' => 'activated',
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->header('User-Agent'),
+                'created_at' => now()
+            ]);
+
+            return redirect()->back()->with('success', 'Licença ativada com sucesso');
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Erro ao ativar licença: ' . $e->getMessage());
         }
     }
 

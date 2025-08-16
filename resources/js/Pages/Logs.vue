@@ -39,7 +39,9 @@
                                     <option value="verify">Verificação</option>
                                     <option value="created">Criação</option>
                                     <option value="renewed">Renovação</option>
+                                    <option value="activated">Ativação</option>
                                     <option value="deactivated">Desativação</option>
+                                    <option value="deleted">Deleção</option>
                                     <option value="expired">Expiração</option>
                                 </select>
                             </div>
@@ -105,7 +107,9 @@
                                                     <path v-if="log.action === 'verify'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                                                     <path v-else-if="log.action === 'created'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                                                     <path v-else-if="log.action === 'renewed'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                                    <path v-else-if="log.action === 'activated'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                     <path v-else-if="log.action === 'deactivated'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                    <path v-else-if="log.action === 'deleted'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                     <path v-else-if="log.action === 'expired'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                     <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                 </svg>
@@ -258,7 +262,9 @@ const getActionColor = (action) => {
         verify: 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400',
         created: 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400',
         renewed: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900 dark:text-indigo-400',
+        activated: 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400',
         deactivated: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-400',
+        deleted: 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400',
         expired: 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400'
     };
     return colors[action] || 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
@@ -269,7 +275,9 @@ const getActionBadgeColor = (action) => {
         verify: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
         created: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
         renewed: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300',
+        activated: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
         deactivated: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+        deleted: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
         expired: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
     };
     return colors[action] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
@@ -280,7 +288,9 @@ const getActionIconClass = (action) => {
         verify: 'text-blue-600 dark:text-blue-400',
         created: 'text-green-600 dark:text-green-400',
         renewed: 'text-indigo-600 dark:text-indigo-400',
+        activated: 'text-green-600 dark:text-green-400',
         deactivated: 'text-yellow-600 dark:text-yellow-400',
+        deleted: 'text-red-600 dark:text-red-400',
         expired: 'text-red-600 dark:text-red-400'
     };
     return classes[action] || 'text-gray-600 dark:text-gray-400';
@@ -291,7 +301,9 @@ const getActionLabel = (action) => {
         verify: 'Verificação',
         created: 'Criação',
         renewed: 'Renovação',
+        activated: 'Ativação',
         deactivated: 'Desativação',
+        deleted: 'Deleção',
         expired: 'Expiração'
     };
     return labels[action] || action;

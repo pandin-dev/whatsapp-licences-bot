@@ -24,6 +24,17 @@
                 <!-- Dashboard Charts -->
                 <LicenseDashboard :licenses="licenses" />
                 
+                <!-- Flash Messages -->
+                <div v-if="$page.props.flash?.success" class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative dark:bg-green-800 dark:border-green-600 dark:text-green-100" role="alert">
+                    <strong class="font-bold">Sucesso!</strong>
+                    <span class="block sm:inline">{{ $page.props.flash.success }}</span>
+                </div>
+                
+                <div v-if="$page.props.flash?.error" class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative dark:bg-red-800 dark:border-red-600 dark:text-red-100" role="alert">
+                    <strong class="font-bold">Erro!</strong>
+                    <span class="block sm:inline">{{ $page.props.flash.error }}</span>
+                </div>
+                
                 <!-- Filters -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
                     <div class="p-6">
@@ -192,13 +203,38 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                                 </svg>
                                             </button>
+                                            
+                                            <!-- Botão Ativar - só aparece para licenças inativas -->
                                             <button 
+                                                v-if="license.status === 'inactive'"
+                                                @click="activateLicense(license)"
+                                                class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                                                title="Ativar"
+                                            >
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                            </button>
+                                            
+                                            <!-- Botão Desativar - só aparece para licenças ativas -->
+                                            <button 
+                                                v-if="license.status === 'active'"
                                                 @click="deactivateLicense(license)"
-                                                class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                                class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300"
                                                 title="Desativar"
                                             >
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"/>
+                                                </svg>
+                                            </button>
+                                            
+                                            <button 
+                                                @click="deleteLicense(license)"
+                                                class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                                title="Deletar permanentemente"
+                                            >
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                 </svg>
                                             </button>
                                         </div>
@@ -334,9 +370,51 @@ const handleLicenseRenewed = () => {
 
 const deactivateLicense = (license) => {
     if (confirm('Tem certeza que deseja desativar esta licença?')) {
-        router.delete(`/admin/licenses/${license.id}/deactivate`, {
-            onSuccess: () => {
-                router.reload();
+        // Salva a posição atual de scroll
+        const scrollY = window.scrollY;
+        
+        router.post(`/admin/licenses/${license.id}/deactivate`, {
+            _method: 'DELETE'
+        }, {
+            onFinish: () => {
+                // Restaura a posição de scroll após a operação
+                setTimeout(() => {
+                    window.scrollTo(0, scrollY);
+                }, 100);
+            }
+        });
+    }
+};
+
+const activateLicense = (license) => {
+    if (confirm('Tem certeza que deseja ativar esta licença?')) {
+        // Salva a posição atual de scroll
+        const scrollY = window.scrollY;
+        
+        router.post(`/admin/licenses/${license.id}/activate`, {}, {
+            onFinish: () => {
+                // Restaura a posição de scroll após a operação
+                setTimeout(() => {
+                    window.scrollTo(0, scrollY);
+                }, 100);
+            }
+        });
+    }
+};
+
+const deleteLicense = (license) => {
+    if (confirm('⚠️ ATENÇÃO: Esta ação é irreversível!\n\nTem certeza que deseja DELETAR PERMANENTEMENTE esta licença?\n\nTodos os dados relacionados serão perdidos para sempre.')) {
+        // Salva a posição atual de scroll
+        const scrollY = window.scrollY;
+        
+        router.post(`/admin/licenses/${license.id}/delete`, {
+            _method: 'DELETE'
+        }, {
+            onFinish: () => {
+                // Restaura a posição de scroll após a operação
+                setTimeout(() => {
+                    window.scrollTo(0, scrollY);
+                }, 100);
             }
         });
     }
