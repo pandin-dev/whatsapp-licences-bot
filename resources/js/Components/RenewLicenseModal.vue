@@ -135,7 +135,7 @@ const renewLicense = async () => {
     error.value = '';
 
     try {
-        const response = await axios.post(`/api/whatsapp/licenses/${props.license.id}/renew`, form);
+        const response = await axios.post(`/admin/licenses/${props.license.id}/renew`, form);
         
         if (response.data.success) {
             emit('renewed', response.data);

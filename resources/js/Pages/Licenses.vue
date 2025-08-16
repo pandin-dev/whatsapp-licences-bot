@@ -334,7 +334,7 @@ const handleLicenseRenewed = () => {
 
 const deactivateLicense = (license) => {
     if (confirm('Tem certeza que deseja desativar esta licença?')) {
-        router.delete(`/api/whatsapp/licenses/${license.id}/deactivate`, {
+        router.delete(`/admin/licenses/${license.id}/deactivate`, {
             onSuccess: () => {
                 router.reload();
             }
