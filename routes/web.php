@@ -22,6 +22,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('admin/licenses')->name('admin.licenses.')->group(function () {
         Route::post('/generate', [WhatsAppLicenseController::class, 'generateKey'])->name('generate');
         Route::post('/{license}/renew', [WhatsAppLicenseController::class, 'renewLicense'])->name('renew');
+        Route::put('/{license}/update', [WhatsAppLicenseController::class, 'updateLicense'])->name('update');
         Route::delete('/{license}/deactivate', [WhatsAppLicenseController::class, 'deactivateLicense'])->name('deactivate');
         Route::post('/{license}/activate', [WhatsAppLicenseController::class, 'activateLicense'])->name('activate');
         Route::delete('/{license}/delete', [WhatsAppLicenseController::class, 'deleteLicense'])->name('delete');

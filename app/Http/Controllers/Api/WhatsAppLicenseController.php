@@ -396,6 +396,60 @@ class WhatsAppLicenseController extends Controller
     }
 
     /**
+     * Atualizar uma licença
+     */
+    public function updateLicense(Request $request, $license)
+    {
+        try {
+            $licenseModel = WhatsAppLicense::findOrFail($license);
+
+            $request->validate([
+                'client_name' => 'sometimes|required|string|max:255',
+                'client_email' => 'sometimes|required|email|max:255',
+                'plan_type' => 'sometimes|required|in:monthly,lifetime',
+                'expires_at' => 'sometimes|nullable|date|after:today',
+            ]);
+
+            $oldData = [
+                'client_name' => $licenseModel->client_name,
+                'client_email' => $licenseModel->client_email,
+                'plan_type' => $licenseModel->plan_type,
+                'expires_at' => $licenseModel->expires_at,
+            ];
+
+            // Atualizar os dados
+            $licenseModel->update($request->only([
+                'client_name', 
+                'client_email', 
+                'plan_type', 
+                'expires_at'
+            ]));
+
+            // Log da atualização
+            WhatsAppLicenseLog::create([
+                'license_id' => $licenseModel->id,
+                'action' => 'updated',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'extra_data' => [
+                    'old_data' => $oldData,
+                    'new_data' => $request->only([
+                        'client_name', 
+                        'client_email', 
+                        'plan_type', 
+                        'expires_at'
+                    ])
+                ]
+            ]);
+
+            return redirect()->back()->with('success', 'Licença atualizada com sucesso!');
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Erro ao atualizar licença: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Gera uma chave de acesso única
      */
     private function generateAccessKey()

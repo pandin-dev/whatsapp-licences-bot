@@ -204,6 +204,17 @@
                                                 </svg>
                                             </button>
                                             
+                                            <!-- Botão Editar -->
+                                            <button 
+                                                @click="editLicense(license)"
+                                                class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                                title="Editar"
+                                            >
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                </svg>
+                                            </button>
+                                            
                                             <!-- Botão Ativar - só aparece para licenças inativas -->
                                             <button 
                                                 v-if="license.status === 'inactive'"
@@ -312,6 +323,14 @@
             @close="showRenewModalVisible = false"
             @renewed="handleLicenseRenewed"
         />
+
+        <!-- Edit License Modal -->
+        <EditLicenseModal
+            :show="showEditModalVisible"
+            :license="selectedLicense"
+            @close="showEditModalVisible = false"
+            @updated="handleLicenseUpdated"
+        />
     </AuthenticatedLayout>
 </template>
 
@@ -321,6 +340,7 @@ import { router, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import CreateLicenseModal from '@/Components/CreateLicenseModal.vue';
 import RenewLicenseModal from '@/Components/RenewLicenseModal.vue';
+import EditLicenseModal from '@/Components/EditLicenseModal.vue';
 import LicenseDashboard from '@/Components/Dashboard/LicenseDashboard.vue';
 import { Head } from '@inertiajs/vue3';
 
@@ -331,6 +351,7 @@ const props = defineProps({
 
 const showCreateModal = ref(false);
 const showRenewModalVisible = ref(false);
+const showEditModalVisible = ref(false);
 const selectedLicense = ref(null);
 
 const filters = reactive({
@@ -358,6 +379,11 @@ const showRenewModal = (license) => {
     showRenewModalVisible.value = true;
 };
 
+const editLicense = (license) => {
+    selectedLicense.value = license;
+    showEditModalVisible.value = true;
+};
+
 const handleLicenseCreated = () => {
     showCreateModal.value = false;
     router.reload();
@@ -365,6 +391,11 @@ const handleLicenseCreated = () => {
 
 const handleLicenseRenewed = () => {
     showRenewModalVisible.value = false;
+    router.reload();
+};
+
+const handleLicenseUpdated = () => {
+    showEditModalVisible.value = false;
     router.reload();
 };
 
