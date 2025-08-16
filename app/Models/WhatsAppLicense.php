@@ -51,7 +51,16 @@ class WhatsAppLicense extends Model
 
     public function getRemainingDaysAttribute()
     {
-        return $this->expires_at->diffInDays(Carbon::now(), false);
+        // Para licenças lifetime (expires_at = null), retorna -1 indicando "sem limite"
+        if (!$this->expires_at) {
+            return -1;
+        }
+        
+        // Calcula os dias restantes e retorna sempre como valor absoluto (positivo)
+        $remainingDays = $this->expires_at->diffInDays(Carbon::now(), false);
+        
+        // Retorna o valor absoluto para garantir que seja sempre positivo
+        return abs($remainingDays);
     }
 
     public function getPlanTypeColorAttribute()
