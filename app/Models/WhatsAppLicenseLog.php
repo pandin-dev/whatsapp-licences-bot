@@ -22,10 +22,11 @@ class WhatsAppLicenseLog extends Model
 
     protected $casts = [
         'extra_data' => 'array',
-        'created_at' => 'datetime'
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
     ];
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     // Relationships
     public function license()

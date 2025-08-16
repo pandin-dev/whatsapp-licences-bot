@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('ip_address', 45);
             $table->text('user_agent')->nullable();
             $table->json('extra_data')->nullable();
-            $table->timestamp('created_at');
+            $table->timestamps();
             
             $table->foreign('license_id')->references('id')->on('whatsapp_licenses')->onDelete('cascade');
             $table->index(['license_id', 'created_at']);
