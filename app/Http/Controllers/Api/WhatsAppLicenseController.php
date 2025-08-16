@@ -406,8 +406,8 @@ class WhatsAppLicenseController extends Controller
             $request->validate([
                 'client_name' => 'sometimes|required|string|max:255',
                 'client_email' => 'sometimes|required|email|max:255',
-                'plan_type' => 'sometimes|required|in:monthly,lifetime',
-                'expires_at' => 'sometimes|nullable|date|after:today',
+                'plan_type' => 'sometimes|required|in:basic,professional,enterprise',
+                'expires_at' => 'sometimes|nullable|date',
             ]);
 
             $oldData = [
@@ -442,10 +442,14 @@ class WhatsAppLicenseController extends Controller
                 ]
             ]);
 
-            return redirect()->back()->with('success', 'Licença atualizada com sucesso!');
+            return back()->with('success', 'Licença atualizada com sucesso!');
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors());
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Erro ao atualizar licença: ' . $e->getMessage());
+            \Log::error('Erro ao atualizar licença: ' . $e->getMessage());
+            
+            return back()->with('error', 'Erro ao atualizar licença: ' . $e->getMessage());
         }
     }
 

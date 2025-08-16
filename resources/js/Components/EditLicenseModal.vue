@@ -71,12 +71,14 @@
                                             v-model="form.plan_type"
                                             class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                         >
-                                            <option value="monthly">Mensal</option>
-                                            <option value="lifetime">Lifetime</option>
+                                            <option value="">Selecione um plano</option>
+                                            <option value="basic">Básico</option>
+                                            <option value="professional">Profissional</option>
+                                            <option value="enterprise">Empresarial</option>
                                         </select>
                                     </div>
 
-                                    <div v-if="form.plan_type === 'monthly'">
+                                    <div v-if="form.plan_type">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                             Data de Expiração
                                         </label>
@@ -145,9 +147,21 @@ const error = ref('');
 const form = reactive({
     client_name: '',
     client_email: '',
-    plan_type: 'monthly',
+    plan_type: '',
     expires_at: ''
 });
+
+// Watch que monitora mudanças nas props e atualiza o formulário
+watch(() => [props.license, props.show], ([newLicense, newShow]) => {
+    if (newShow && newLicense) {
+        console.log('Atualizando formulário com nova licença:', newLicense);
+        form.client_name = newLicense.client_name || '';
+        form.client_email = newLicense.client_email || '';
+        form.plan_type = newLicense.plan_type || '';
+        form.expires_at = formatDateForInput(newLicense.expires_at);
+        error.value = '';
+    }
+}, { immediate: true, deep: true });
 
 const formatDateForInput = (date) => {
     if (!date) return '';
@@ -161,6 +175,10 @@ const resetForm = () => {
         form.client_email = props.license.client_email || '';
         form.plan_type = props.license.plan_type || 'monthly';
         form.expires_at = formatDateForInput(props.license.expires_at);
+        
+        // Debug para verificar os dados
+        console.log('Dados da licença:', props.license);
+        console.log('Form após reset:', { ...form });
     }
     error.value = '';
 };
@@ -183,38 +201,46 @@ const updateLicense = async () => {
 
     const scrollPosition = saveScrollPosition();
 
-    try {
-        router.put(`/admin/licenses/${props.license.id}/update`, form, {
-            preserveScroll: true,
-            onSuccess: () => {
-                emit('updated');
-                emit('close');
-                restoreScrollPosition(scrollPosition);
-            },
-            onError: (errors) => {
-                error.value = errors.message || 'Erro ao atualizar licença';
-                restoreScrollPosition(scrollPosition);
-            },
-            onFinish: () => {
-                loading.value = false;
+    // Preparar os dados para envio, garantindo formato correto da data
+    const formData = {
+        client_name: form.client_name,
+        client_email: form.client_email,
+        plan_type: form.plan_type,
+        expires_at: form.expires_at || null // Garante null se vazio
+    };
+
+    console.log('Dados sendo enviados:', formData);
+
+    router.put(`/admin/licenses/${props.license.id}/update`, formData, {
+        preserveScroll: true,
+        onSuccess: () => {
+            emit('updated');
+            emit('close');
+            restoreScrollPosition(scrollPosition);
+        },
+        onError: (errors) => {
+            console.log('Erros de validação:', errors);
+            
+            // Se houver erros de validação específicos
+            if (errors.plan_type) {
+                error.value = `Tipo de plano: ${errors.plan_type[0]}`;
+            } else if (errors.client_name) {
+                error.value = `Nome do cliente: ${errors.client_name[0]}`;
+            } else if (errors.client_email) {
+                error.value = `Email: ${errors.client_email[0]}`;
+            } else if (errors.expires_at) {
+                error.value = `Data de expiração: ${errors.expires_at[0]}`;
+            } else if (errors.message) {
+                error.value = errors.message;
+            } else {
+                error.value = 'Erro ao atualizar licença. Verifique os dados informados.';
             }
-        });
-    } catch (err) {
-        error.value = 'Erro ao atualizar licença';
-        loading.value = false;
-        restoreScrollPosition(scrollPosition);
-    }
+            
+            restoreScrollPosition(scrollPosition);
+        },
+        onFinish: () => {
+            loading.value = false;
+        }
+    });
 };
-
-watch(() => props.show, (newValue) => {
-    if (newValue && props.license) {
-        resetForm();
-    }
-});
-
-watch(() => props.license, (newLicense) => {
-    if (newLicense && props.show) {
-        resetForm();
-    }
-});
 </script>

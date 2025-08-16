@@ -25,13 +25,31 @@
                 <LicenseDashboard :licenses="licenses" />
                 
                 <!-- Flash Messages -->
-                <div v-if="$page.props.flash?.success" class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative dark:bg-green-800 dark:border-green-600 dark:text-green-100" role="alert">
-                    <strong class="font-bold">Sucesso!</strong>
+                <div v-if="showSuccessMessage && $page.props.flash?.success" 
+                     class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative dark:bg-green-800 dark:border-green-600 dark:text-green-100 transition-opacity duration-300" 
+                     :class="{ 'opacity-0': fadeOut }"
+                     role="alert">
+                    <button @click="hideSuccessMessage" class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                        <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <title>Fechar</title>
+                            <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+                        </svg>
+                    </button>
+                    <strong class="font-bold">Sucesso! </strong>
                     <span class="block sm:inline">{{ $page.props.flash.success }}</span>
                 </div>
                 
-                <div v-if="$page.props.flash?.error" class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative dark:bg-red-800 dark:border-red-600 dark:text-red-100" role="alert">
-                    <strong class="font-bold">Erro!</strong>
+                <div v-if="showErrorMessage && $page.props.flash?.error" 
+                     class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative dark:bg-red-800 dark:border-red-600 dark:text-red-100 transition-opacity duration-300" 
+                     :class="{ 'opacity-0': fadeOut }"
+                     role="alert">
+                    <button @click="hideErrorMessage" class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                        <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <title>Fechar</title>
+                            <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+                        </svg>
+                    </button>
+                    <strong class="font-bold">Erro! </strong>
                     <span class="block sm:inline">{{ $page.props.flash.error }}</span>
                 </div>
                 
@@ -354,6 +372,11 @@ const showRenewModalVisible = ref(false);
 const showEditModalVisible = ref(false);
 const selectedLicense = ref(null);
 
+// Controle de mensagens flash
+const showSuccessMessage = ref(true);
+const showErrorMessage = ref(true);
+const fadeOut = ref(false);
+
 const filters = reactive({
     search: props.filters?.search || '',
     status: props.filters?.status || '',
@@ -380,6 +403,7 @@ const showRenewModal = (license) => {
 };
 
 const editLicense = (license) => {
+    console.log('Editando licença:', license);
     selectedLicense.value = license;
     showEditModalVisible.value = true;
 };
@@ -396,8 +420,73 @@ const handleLicenseRenewed = () => {
 
 const handleLicenseUpdated = () => {
     showEditModalVisible.value = false;
-    router.reload();
+    
+    // Aguarda um pouco para a modal fechar, então recarrega apenas os dados necessários
+    setTimeout(() => {
+        router.reload({ 
+            only: ['licenses'],
+            preserveScroll: true 
+        });
+    }, 100);
 };
+
+// Controle das mensagens flash
+const hideSuccessMessage = () => {
+    fadeOut.value = true;
+    setTimeout(() => {
+        showSuccessMessage.value = false;
+        fadeOut.value = false;
+    }, 300);
+};
+
+const hideErrorMessage = () => {
+    fadeOut.value = true;
+    setTimeout(() => {
+        showErrorMessage.value = false;
+        fadeOut.value = false;
+    }, 300);
+};
+
+// Auto-ocultar mensagens após 5 segundos
+const page = usePage();
+
+watch(() => page.props.flash?.success, (newValue, oldValue) => {
+    console.log('Flash success mudou:', { newValue, oldValue });
+    if (newValue && newValue !== oldValue) {
+        showSuccessMessage.value = true;
+        fadeOut.value = false;
+        
+        // Cancela timeout anterior se existir
+        if (window.successTimeout) {
+            clearTimeout(window.successTimeout);
+        }
+        
+        window.successTimeout = setTimeout(() => {
+            if (showSuccessMessage.value) {
+                hideSuccessMessage();
+            }
+        }, 5000);
+    }
+}, { immediate: true });
+
+watch(() => page.props.flash?.error, (newValue, oldValue) => {
+    console.log('Flash error mudou:', { newValue, oldValue });
+    if (newValue && newValue !== oldValue) {
+        showErrorMessage.value = true;
+        fadeOut.value = false;
+        
+        // Cancela timeout anterior se existir
+        if (window.errorTimeout) {
+            clearTimeout(window.errorTimeout);
+        }
+        
+        window.errorTimeout = setTimeout(() => {
+            if (showErrorMessage.value) {
+                hideErrorMessage();
+            }
+        }, 5000);
+    }
+}, { immediate: true });
 
 const deactivateLicense = (license) => {
     if (confirm('Tem certeza que deseja desativar esta licença?')) {
