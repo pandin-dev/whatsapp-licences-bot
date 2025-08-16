@@ -22,8 +22,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // Rotas públicas (para verificação de licenças)
 Route::post('/whatsapp/verify-key', [WhatsAppLicenseController::class, 'verifyKey']);
 
-// Rotas protegidas (para administração)
-Route::middleware(['auth:sanctum'])->group(function () {
+// Rotas protegidas (para administração) - aceita tanto web quanto sanctum
+Route::middleware(['auth:web,sanctum'])->group(function () {
     
     // Gerenciamento de licenças
     Route::prefix('whatsapp/licenses')->group(function () {
