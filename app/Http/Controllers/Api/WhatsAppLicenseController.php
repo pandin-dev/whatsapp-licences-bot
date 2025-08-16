@@ -168,9 +168,16 @@ class WhatsAppLicenseController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            // Log do erro para debugging
+            \Log::error('Erro ao gerar licença: ' . $e->getMessage(), [
+                'exception' => $e,
+                'request_data' => $request->all()
+            ]);
+            
             return response()->json([
                 'success' => false,
-                'message' => 'Erro ao gerar licença'
+                'message' => 'Erro ao gerar licença',
+                'debug' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
     }
